@@ -117,7 +117,13 @@ class OpenSmsAdapter(SmsProviderInterface):
     # A 404 or any HTTP response proves the server is up; connection error proves it's down.
 
     def __init__(self, host: str, port: int, api_key_env_ref: str):
-        self.base_url = f"http://{host}:{port}"
+        # `host` may be a full URL (e.g. a Cloudflare Tunnel https:// hostname
+        # exposing the phone to a cloud deployment). Otherwise assume plain
+        # HTTP on a LAN IP/hostname with the configured port.
+        if host.startswith("http://") or host.startswith("https://"):
+            self.base_url = host.rstrip("/")
+        else:
+            self.base_url = f"http://{host}:{port}"
         self._api_key_env_ref = api_key_env_ref
         # Connect timeout and read timeout are separate.
         # Read timeout must be generous (Android sending can take several seconds).
