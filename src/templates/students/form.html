@@ -24,13 +24,12 @@
         <h2 class="text-sm font-semibold text-slate-900 mb-3">Student</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
             {% for field in form %}
-                {% if field.name == "hall_ticket_number" or field.name == "full_name" or field.name == "date_of_birth" or field.name == "is_active" %}
+                {% if field.name == "hall_ticket_number" or field.name == "full_name" or field.name == "date_of_birth" or field.name == "is_active" or field.name == "section" or field.name == "admission_batch" %}
                 <div class="{% if field.name == 'is_active' %}flex items-center gap-2{% endif %}">
                     <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-slate-700 mb-1">{{ field.label }}</label>
-                    {% if field.name == 'is_active' %}
-                        {{ field }}
-                    {% else %}
-                        {{ field }}
+                    {{ field }}
+                    {% if field.help_text %}
+                    <p class="mt-1 text-xs text-slate-400">{{ field.help_text }}</p>
                     {% endif %}
                     {% for error in field.errors %}
                     <p class="mt-1 text-xs text-rose-600">{{ error }}</p>

@@ -114,6 +114,20 @@ def _save_student_and_guardian(form: StudentForm, student: Student | None, user)
             link.contact = contact
             link.relationship = rel
             link.save()
+
+        # Optional enrollment so the student appears in attendance registers.
+        section = data.get("section")
+        if section:
+            Enrollment.objects.get_or_create(
+                student=student,
+                section=section,
+                term=section.term,
+                defaults={
+                    "admission_batch": data["admission_batch"],
+                    "valid_from": timezone.localdate(),
+                    "entry_event": "admission" if created else "transfer",
+                },
+            )
     return student, created
 
 
@@ -149,6 +163,7 @@ def student_update_view(request, student_id):
             messages.success(request, f"Student {student} updated.")
             return redirect("people:detail", student_id=student.id)
     else:
+        enrollment = student.enrollments.filter(status="active").order_by("-valid_from").first()
         form = StudentForm(
             student=student,
             initial={
@@ -156,6 +171,8 @@ def student_update_view(request, student_id):
                 "full_name": student.full_name,
                 "date_of_birth": student.date_of_birth,
                 "is_active": student.is_active,
+                "section": enrollment.section if enrollment else None,
+                "admission_batch": enrollment.admission_batch if enrollment else None,
                 "guardian_name": link.guardian.full_name if link else "",
                 "guardian_relationship": link.relationship if link else "Parent",
                 "guardian_phone": str(link.contact.normalized_number) if link and link.contact and link.contact.normalized_number else "",

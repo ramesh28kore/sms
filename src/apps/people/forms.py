@@ -3,12 +3,14 @@ import phonenumbers
 from django import forms
 from django.conf import settings
 
+from apps.academics.models import AdmissionBatch, ClassSection
 from apps.people.models import Student
 
 
 class StudentForm(forms.Form):
     """
-    Combined form for a student and their designated guardian contact.
+    Combined form for a student, their designated guardian contact,
+    and optional class-section enrollment (needed to appear in attendance).
     Mirrors the CSV bulk-import validation rules.
     """
     hall_ticket_number = forms.CharField(
@@ -24,6 +26,19 @@ class StudentForm(forms.Form):
         widget=forms.DateInput(attrs={"type": "date", "class": "form-input"}),
     )
     is_active = forms.BooleanField(required=False, initial=True)
+    section = forms.ModelChoiceField(
+        queryset=ClassSection.objects.filter(is_active=True).select_related("term", "term__branch"),
+        required=False,
+        label="Class section (for attendance)",
+        widget=forms.Select(attrs={"class": "form-input"}),
+        help_text="Enroll the student so they appear in attendance registers.",
+    )
+    admission_batch = forms.ModelChoiceField(
+        queryset=AdmissionBatch.objects.filter(is_active=True),
+        required=False,
+        label="Admission batch",
+        widget=forms.Select(attrs={"class": "form-input"}),
+    )
     guardian_name = forms.CharField(
         max_length=255, required=False,
         widget=forms.TextInput(attrs={"class": "form-input", "placeholder": "e.g. Rajesh Sharma"}),
@@ -50,6 +65,12 @@ class StudentForm(forms.Form):
             raise forms.ValidationError("A student with this hall ticket number already exists.")
         return htn
 
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get("section") and not cleaned.get("admission_batch"):
+            self.add_error("admission_batch", "Select the admission batch when enrolling in a section.")
+        return cleaned
+
     def clean_guardian_phone(self):
         phone = self.cleaned_data.get("guardian_phone", "").strip()
         if not phone:
@@ -62,3 +83,4 @@ class StudentForm(forms.Form):
         if not phonenumbers.is_valid_number(parsed):
             raise forms.ValidationError("This phone number does not look valid for the configured region.")
         return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
+
