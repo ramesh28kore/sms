@@ -43,13 +43,21 @@
                 <td class="px-4 py-3 font-mono text-slate-600">{{ n.recipient_slot.frozen_destination|slice:":5" }}*****{{ n.recipient_slot.frozen_destination|slice:"-2:" }}</td>
                 <td class="px-4 py-3">
                     {% if n.status == 'dispatch_accepted' %}
-                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Dispatch Accepted</span>
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">✅ SMS Sent Successfully{% if n.is_simulation %} (Simulated){% endif %}</span>
                     {% elif n.status == 'queued' %}
-                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">Queued</span>
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">⏳ Queued — Not Sent Yet</span>
+                    {% elif n.status == 'dispatching' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">⏳ Sending…</span>
                     {% elif n.status == 'unknown_outcome' %}
-                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Unknown Outcome</span>
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">⚠️ Unknown — May Have Been Sent</span>
                     {% elif n.status == 'blocked' %}
-                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">Blocked</span>
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">🚫 Blocked — Not Sent</span>
+                    {% elif n.status == 'failed' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">❌ Failed — Not Sent</span>
+                    {% elif n.status == 'cancelled' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800">⛔ Cancelled — Not Sent</span>
+                    {% elif n.status == 'expired' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800">⌛ Expired — Not Sent</span>
                     {% else %}
                     <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 capitalize">{{ n.status }}</span>
                     {% endif %}

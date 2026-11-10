@@ -2,7 +2,7 @@ from datetime import date, time
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
-from apps.accounts.models import User, RoleChoices, ScopedRoleGrant
+from apps.accounts.models import User, RoleChoices, ScopedRoleGrant, ScopeTypeChoices
 from apps.institution.models import InstituteSettings, Department
 from apps.academics.models import (
     Programme, Branch, AdmissionBatch, AcademicYear, TeachingTerm, ClassSection,

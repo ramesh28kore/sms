@@ -13,7 +13,19 @@
             <p class="text-sm text-slate-500">Student: {{ notification.intent.student.full_name }} ({{ notification.intent.student.hall_ticket_number }}) | Date: {{ notification.intent.attendance_date }}</p>
         </div>
         <div>
+            {% if notification.status == 'dispatch_accepted' %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-emerald-100 text-emerald-800">✅ SMS Sent Successfully{% if notification.is_simulation %} (Simulated){% endif %}</span>
+            {% elif notification.status == 'queued' %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-blue-100 text-blue-800">⏳ Queued — Not Sent Yet</span>
+            {% elif notification.status == 'unknown_outcome' %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-amber-100 text-amber-800">⚠️ Unknown — May Have Been Sent</span>
+            {% elif notification.status == 'blocked' %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-rose-100 text-rose-800">🚫 Blocked — Not Sent</span>
+            {% elif notification.status == 'failed' %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-rose-100 text-rose-800">❌ Failed — Not Sent</span>
+            {% else %}
             <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-slate-100 text-slate-800 uppercase">{{ notification.status }}</span>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -80,9 +92,13 @@
                 <td class="px-4 py-3 text-slate-600">{{ a.get_phase_display }}</td>
                 <td class="px-4 py-3">
                     {% if a.outcome == 'dispatch_accepted' %}
-                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Dispatch Accepted</span>
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">✅ Sent Successfully</span>
                     {% elif a.outcome == 'unknown_outcome' %}
-                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Unknown Outcome</span>
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">⚠️ Unknown</span>
+                    {% elif a.outcome == 'failed_pre_submit' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">❌ Failed (never reached gateway)</span>
+                    {% elif a.outcome == 'failed_post_submit' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">❌ Failed (rejected by gateway)</span>
                     {% else %}
                     <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800 capitalize">{{ a.outcome }}</span>
                     {% endif %}

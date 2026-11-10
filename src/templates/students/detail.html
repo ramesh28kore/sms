@@ -12,7 +12,11 @@
             <h1 class="text-2xl font-bold text-slate-900">{{ student.full_name }}</h1>
             <p class="font-mono text-sm text-slate-500">Hall Ticket: {{ student.hall_ticket_number }}</p>
         </div>
-        <div>
+        <div class="flex items-center gap-3">
+            {% if can_reveal_contacts %}
+            <a href="{% url 'people:edit' student.id %}" class="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">Edit</a>
+            <a href="{% url 'people:delete' student.id %}" class="inline-flex items-center px-3 py-2 border border-rose-300 shadow-sm text-sm font-medium rounded-md text-rose-700 bg-white hover:bg-rose-50">Delete</a>
+            {% endif %}
             {% if student.is_active %}
             <span class="inline-flex px-2.5 py-1 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Enrolled & Active</span>
             {% else %}

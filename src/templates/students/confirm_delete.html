@@ -1,0 +1,37 @@
+{% extends "base/base.html" %}
+
+{% block title %}Delete {{ student.full_name }} — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'people:detail' student.id %}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-2">
+        &larr; Back to Student
+    </a>
+    <h1 class="text-xl font-bold text-slate-900">Delete Student</h1>
+</div>
+
+<div class="bg-white p-6 rounded-lg border border-rose-200 shadow-sm max-w-2xl">
+    <div class="flex items-start gap-3">
+        <div class="text-2xl">⚠️</div>
+        <div>
+            <p class="text-sm text-slate-800">
+                Are you sure you want to delete
+                <strong>{{ student.full_name }}</strong>
+                (<span class="font-mono">{{ student.hall_ticket_number }}</span>)?
+            </p>
+            <p class="text-sm text-slate-500 mt-2">
+                If this student has attendance or enrollment history, they will be <strong>archived</strong> instead of deleted,
+                so past records stay intact. Archived students no longer appear in attendance or receive alerts.
+            </p>
+        </div>
+    </div>
+
+    <form method="post" class="mt-6 flex items-center gap-3">
+        {% csrf_token %}
+        <button type="submit" class="px-4 py-2 bg-rose-600 text-white rounded-md text-sm font-medium hover:bg-rose-700">
+            Yes, Delete / Archive
+        </button>
+        <a href="{% url 'people:detail' student.id %}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-200">Cancel</a>
+    </form>
+</div>
+{% endblock %}

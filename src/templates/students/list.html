@@ -13,6 +13,9 @@
         <a href="{% url 'people:export_csv' %}" class="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">
             Export CSV
         </a>
+        <a href="{% url 'people:add' %}" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+            + Add Student
+        </a>
         {% endif %}
     </div>
 </div>
@@ -71,8 +74,12 @@
                         {% endif %}
                     {% endwith %}
                 </td>
-                <td class="px-4 py-3 text-right">
+                <td class="px-4 py-3 text-right whitespace-nowrap">
                     <a href="{% url 'people:detail' s.id %}" class="text-blue-600 hover:text-blue-800 font-medium">View</a>
+                    {% if can_reveal_contacts %}
+                    <a href="{% url 'people:edit' s.id %}" class="text-amber-600 hover:text-amber-800 font-medium ml-3">Edit</a>
+                    <a href="{% url 'people:delete' s.id %}" class="text-rose-600 hover:text-rose-800 font-medium ml-3">Delete</a>
+                    {% endif %}
                 </td>
             </tr>
             {% empty %}
