@@ -183,6 +183,8 @@ SESSION_COOKIE_HTTPONLY = True
 # ---------------------------------------------------------------------------
 CELERY_BROKER_URL = config("CELERY_BROKER_URL", default=REDIS_URL)
 CELERY_RESULT_BACKEND = config("CELERY_RESULT_BACKEND", default=REDIS_URL)
+# Serverless (e.g. Vercel) has no worker process; run tasks inline in the request.
+CELERY_TASK_ALWAYS_EAGER = config("CELERY_TASK_ALWAYS_EAGER", default=False, cast=bool)
 CELERY_TIMEZONE = "UTC"  # Celery always uses UTC; app translates for display
 CELERY_TASK_SERIALIZER = "json"
 CELERY_ACCEPT_CONTENT = ["json"]
