@@ -1,0 +1,87 @@
+{% extends "base/base.html" %}
+
+{% block title %}Students & Guardians — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="sm:flex sm:items-center sm:justify-between mb-6">
+    <div>
+        <h1 class="text-xl font-bold text-slate-900">Students & Guardians</h1>
+        <p class="text-sm text-slate-500">Student enrollment, designated notification recipients, and contact authorization.</p>
+    </div>
+    <div class="mt-4 sm:mt-0 flex space-x-3">
+        {% if can_reveal_contacts %}
+        <a href="{% url 'people:export_csv' %}" class="inline-flex items-center px-3 py-2 border border-slate-300 shadow-sm text-sm font-medium rounded-md text-slate-700 bg-white hover:bg-slate-50">
+            Export CSV
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="bg-white p-4 rounded-lg border border-slate-200 mb-6 shadow-sm">
+    <form method="get" class="flex gap-4">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by Hall Ticket Number or Name..." class="flex-1 rounded-md border-slate-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm px-3 py-2 border">
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">Search</button>
+        {% if query %}
+        <a href="{% url 'people:list' %}" class="px-4 py-2 bg-slate-100 text-slate-600 rounded-md text-sm font-medium hover:bg-slate-200 flex items-center">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Table -->
+<div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600 font-medium">
+            <tr>
+                <th class="px-4 py-3 text-left">Hall Ticket</th>
+                <th class="px-4 py-3 text-left">Name</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Designated Guardian</th>
+                <th class="px-4 py-3 text-left">Phone (Masked)</th>
+                <th class="px-4 py-3 text-right">Action</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+            {% for s in students %}
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-mono font-medium text-blue-600">{{ s.hall_ticket_number }}</td>
+                <td class="px-4 py-3 text-slate-900 font-medium">{{ s.full_name }}</td>
+                <td class="px-4 py-3">
+                    {% if s.is_active %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800">Active</span>
+                    {% else %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800">Archived</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-slate-600">
+                    {% with link=s.guardian_links.first %}
+                        {% if link %}{{ link.guardian.full_name }} ({{ link.relationship }}){% else %}—{% endif %}
+                    {% endwith %}
+                </td>
+                <td class="px-4 py-3 font-mono text-slate-600">
+                    {% with link=s.guardian_links.first %}
+                        {% if link and link.contact %}
+                            {% if can_reveal_contacts %}
+                                {{ link.contact.normalized_number }}
+                            {% else %}
+                                {{ link.contact.normalized_number|slice:":5" }}*****{{ link.contact.normalized_number|slice:"-2:" }}
+                            {% endif %}
+                        {% else %}
+                            <span class="text-rose-500 font-sans text-xs">No Phone Linked</span>
+                        {% endif %}
+                    {% endwith %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'people:detail' s.id %}" class="text-blue-600 hover:text-blue-800 font-medium">View</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-slate-500">No students found matching your criteria.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

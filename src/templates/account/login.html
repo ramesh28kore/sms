@@ -1,0 +1,60 @@
+{% extends "base/base.html" %}
+
+{% block title %}Staff Sign In — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[60vh] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+        <h2 class="text-center text-2xl font-bold tracking-tight text-slate-900">
+            Staff Portal Sign In
+        </h2>
+        <p class="mt-2 text-center text-sm text-slate-600">
+            {{ institute_name }} ({{ academic_context }})
+        </p>
+    </div>
+
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+        <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10 border border-slate-200">
+            <form class="space-y-6" method="post" action="{% url 'account_login' %}">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="rounded-md bg-rose-50 p-4 border border-rose-200">
+                    <div class="text-sm text-rose-700">
+                        Please enter a valid username/email and password.
+                    </div>
+                </div>
+                {% endif %}
+
+                <div>
+                    <label for="id_login" class="block text-sm font-medium text-slate-700">Username or Email</label>
+                    <div class="mt-1">
+                        <input id="id_login" name="login" type="text" autocomplete="username" required
+                               class="block w-full appearance-none rounded-md border border-slate-300 px-3 py-2 placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="id_password" class="block text-sm font-medium text-slate-700">Password</label>
+                    <div class="mt-1">
+                        <input id="id_password" name="password" type="password" autocomplete="current-password" required
+                               class="block w-full appearance-none rounded-md border border-slate-300 px-3 py-2 placeholder-slate-400 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-blue-500 sm:text-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit"
+                            class="flex w-full justify-center rounded-md border border-transparent bg-blue-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        Sign In
+                    </button>
+                </div>
+            </form>
+
+            <div class="mt-6 border-t border-slate-200 pt-4 text-xs text-center text-slate-500">
+                Self-registration is disabled. Contact your Institute Administrator for access credentials.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

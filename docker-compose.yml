@@ -1,0 +1,122 @@
+# === Avanthi Attendance & Parent Alerts ===
+# Docker Compose v2 — local development and campus deployment
+# Review docs/setup/DEPLOYMENT.md before first use.
+# Default mode: SIMULATOR. Live SMS requires explicit administrator activation.
+
+services:
+
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-avanthi_sms}
+      POSTGRES_USER: ${POSTGRES_USER:-avanthi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-avanthi} -d ${POSTGRES_DB:-avanthi_sms}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports: []  # NOT exposed publicly; only accessible within compose network
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    ports: []  # NOT exposed publicly
+
+  web:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile
+      target: production
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/app/media
+      - staticfiles:/app/staticfiles
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 4 --timeout 60 --access-logfile - --error-logfile -"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/health/live/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  worker:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile
+      target: production
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - media:/app/media
+    command: >
+      celery -A config.celery_app worker
+        --loglevel=info
+        --queues=default,gateway_sender
+        --concurrency=4
+        --max-tasks-per-child=1000
+
+  beat:
+    build:
+      context: .
+      dockerfile: deployment/Dockerfile
+      target: production
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      celery -A config.celery_app beat
+        --loglevel=info
+        --scheduler django_celery_beat.schedulers:DatabaseScheduler
+
+  # Optional: nginx reverse proxy for production
+  # nginx:
+  #   image: nginx:alpine
+  #   ...see deployment/nginx/
+
+volumes:
+  pgdata:
+  redisdata:
+  media:
+  staticfiles:
+
+networks:
+  default:
+    name: avanthi_net
+

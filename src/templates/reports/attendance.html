@@ -1,0 +1,105 @@
+{% extends "base/base.html" %}
+
+{% block title %}Attendance counts — {{ institute_name }}{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-semibold text-slate-900">Attendance counts</h1>
+    <p class="mt-1 text-sm text-slate-600">
+      {{ start_date|date:"j M Y" }} – {{ end_date|date:"j M Y" }} · {{ scope_label }}
+    </p>
+  </header>
+
+  <form method="get" class="flex flex-wrap items-end gap-4 rounded-lg border border-slate-200 bg-white p-4">
+    <div>
+      <label for="start" class="block text-sm font-medium text-slate-700">From</label>
+      <input id="start" name="start" type="date" value="{{ start_date|date:'Y-m-d' }}"
+             class="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">
+    </div>
+    <div>
+      <label for="end" class="block text-sm font-medium text-slate-700">Through</label>
+      <input id="end" name="end" type="date" value="{{ end_date|date:'Y-m-d' }}"
+             class="mt-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-700">
+    </div>
+    <button type="submit" class="min-h-11 rounded-md bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800">
+      Apply dates
+    </button>
+  </form>
+
+  {% if can_export and not errors %}
+    <form method="post" action="/reports/export/">
+      {% csrf_token %}
+      <input type="hidden" name="start" value="{{ start_date|date:'Y-m-d' }}">
+      <input type="hidden" name="end" value="{{ end_date|date:'Y-m-d' }}">
+      <button type="submit" class="min-h-11 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-50">
+        Download scoped counts (CSV)
+      </button>
+    </form>
+  {% endif %}
+
+  {% if errors %}
+    <div role="alert" class="rounded-md border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
+      <h2 class="font-semibold">Check the selected date range</h2>
+      <ul class="mt-2 list-disc pl-5">
+        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% endif %}
+
+  <p class="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+    {{ policy_notice }}
+  </p>
+
+  {% if not errors %}
+    <p>
+      <a class="font-semibold text-blue-800 underline" href="/reports/sessions/?start={{ start_date|date:'Y-m-d' }}&amp;end={{ end_date|date:'Y-m-d' }}">
+        Browse held sessions and underlying attendance records
+      </a>
+    </p>
+  {% endif %}
+
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <caption class="sr-only">Attendance session and student-record counts by subject and term</caption>
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+        <tr>
+          <th scope="col" class="px-4 py-3">Branch / term</th>
+          <th scope="col" class="px-4 py-3">Subject</th>
+          <th scope="col" class="px-4 py-3">Register state</th>
+          <th scope="col" class="px-4 py-3 text-right">Held sessions</th>
+          <th scope="col" class="px-4 py-3 text-right">Present / late records</th>
+          <th scope="col" class="px-4 py-3 text-right">Absent records</th>
+          <th scope="col" class="px-4 py-3 text-right">Excused</th>
+          <th scope="col" class="px-4 py-3 text-right">Unmarked</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for row in rows %}
+          <tr>
+            <td class="whitespace-nowrap px-4 py-3">
+              {{ row.offering__term__branch__code }} · Year {{ row.offering__term__study_year }}, Semester {{ row.offering__term__semester }}
+            </td>
+            <td class="px-4 py-3">
+              <span class="font-medium text-slate-900">{{ row.offering__subject__code }}</span>
+              <span class="block text-slate-600">{{ row.offering__subject__title }}</span>
+            </td>
+            <td class="px-4 py-3">{{ row.register_status|title }}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{{ row.held_sessions }}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{{ row.present_or_late }}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{{ row.absent }}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{{ row.excused }}</td>
+            <td class="px-4 py-3 text-right tabular-nums">{{ row.unmarked }}</td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="8" class="px-4 py-10 text-center text-slate-600">
+              {% if errors %}No results for this invalid range.{% else %}No held sessions in this range.{% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends "base/base.html" %}
+
+{% block title %}Today's Attendance Sessions — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-slate-900">Today's Class Registers ({{ selected_date }})</h1>
+    <p class="text-sm text-slate-500">Scheduled periods and laboratory sessions requiring faculty attendance entry and explicit finalization.</p>
+</div>
+
+<div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600 font-medium">
+            <tr>
+                <th class="px-4 py-3 text-left">Subject / Offering</th>
+                <th class="px-4 py-3 text-left">Section</th>
+                <th class="px-4 py-3 text-left">Register Status</th>
+                <th class="px-4 py-3 text-left">Session Status</th>
+                <th class="px-4 py-3 text-right">Action</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+            {% for s in sessions %}
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-medium text-slate-900">{{ s.offering }}</td>
+                <td class="px-4 py-3 text-slate-600">{{ s.section }}</td>
+                <td class="px-4 py-3">
+                    {% if s.register_status == 'finalized' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Finalized</span>
+                    {% else %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Draft / Incomplete</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-slate-600 capitalize">{{ s.session_status }}</td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'attendance:register' s.id %}" class="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700">Open Register</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="px-4 py-8 text-center text-slate-500">No scheduled sessions found for today.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

@@ -1,0 +1,91 @@
+{% extends "base/base.html" %}
+
+{% block title %}Import Preview #{{ job.id|slice:":8" }} — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h1 class="text-xl font-bold text-slate-900">Import Preview: {{ job.original_filename }}</h1>
+        <p class="text-sm text-slate-500">Dataset: {{ job.get_import_type_display }} | Status: <span class="font-semibold uppercase">{{ job.status }}</span></p>
+    </div>
+    {% if job.status == 'preview_ready' and job.valid_rows > 0 %}
+    <form method="post" action="{% url 'imports_export:commit' job.id %}">
+        {% csrf_token %}
+        <button type="submit" onclick="return confirm('Commit these records to the live database?')" class="px-4 py-2 bg-emerald-600 text-white rounded-md text-sm font-medium hover:bg-emerald-700">
+            Commit {{ job.valid_rows }} Valid Rows
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-4 gap-4 mb-6">
+    <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <div class="text-xs text-slate-500">Total Rows</div>
+        <div class="text-2xl font-bold text-slate-900">{{ job.total_rows }}</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <div class="text-xs text-slate-500">Valid Rows</div>
+        <div class="text-2xl font-bold text-emerald-600">{{ job.valid_rows }}</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <div class="text-xs text-slate-500">Error Rows</div>
+        <div class="text-2xl font-bold text-rose-600">{{ job.error_rows }}</div>
+    </div>
+    <div class="bg-white p-4 rounded-lg border border-slate-200">
+        <div class="text-xs text-slate-500">Committed (Created / Updated)</div>
+        <div class="text-2xl font-bold text-blue-600">{{ job.created_count }} / {{ job.updated_count }}</div>
+    </div>
+</div>
+
+<!-- Rows Table -->
+<div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600 font-medium">
+            <tr>
+                <th class="px-4 py-3 text-left">#</th>
+                <th class="px-4 py-3 text-left">Raw Payload Data</th>
+                <th class="px-4 py-3 text-left">Validation Status</th>
+                <th class="px-4 py-3 text-left">Errors & Warnings</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+            {% for r in rows %}
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-mono text-slate-500">{{ r.row_number }}</td>
+                <td class="px-4 py-3 font-mono text-xs text-slate-700">
+                    {{ r.raw_data }}
+                </td>
+                <td class="px-4 py-3">
+                    {% if r.status == 'valid' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Valid</span>
+                    {% elif r.status == 'warning' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Warning</span>
+                    {% elif r.status == 'committed' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">Committed</span>
+                    {% else %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">Error</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs">
+                    {% if r.errors %}
+                    <div class="text-rose-600 font-medium">{{ r.errors|join:", " }}</div>
+                    {% endif %}
+                    {% if r.warnings %}
+                    <div class="text-amber-600">{{ r.warnings|join:", " }}</div>
+                    {% endif %}
+                    {% if not r.errors and not r.warnings %}
+                    <span class="text-slate-400">None</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="px-4 py-8 text-center text-slate-500">No rows in this preview.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

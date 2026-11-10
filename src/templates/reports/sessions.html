@@ -1,0 +1,75 @@
+{% extends "base/base.html" %}
+
+{% block title %}Report sessions — {{ institute_name }}{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <header>
+    <h1 class="text-2xl font-semibold text-slate-900">Report sessions</h1>
+    <p class="mt-1 text-sm text-slate-600">
+      {{ start_date|date:"j M Y" }} – {{ end_date|date:"j M Y" }} · {{ scope_label }}
+    </p>
+  </header>
+
+  {% if errors %}
+    <div role="alert" class="rounded-md border border-rose-300 bg-rose-50 p-4 text-sm text-rose-900">
+      <ul class="list-disc pl-5">
+        {% for error in errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    </div>
+  {% elif page_obj %}
+    <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+        <caption class="sr-only">Held attendance sessions in the selected date range</caption>
+        <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+          <tr>
+            <th scope="col" class="px-4 py-3">Date</th>
+            <th scope="col" class="px-4 py-3">Branch / section</th>
+            <th scope="col" class="px-4 py-3">Subject</th>
+            <th scope="col" class="px-4 py-3">Register</th>
+            <th scope="col" class="px-4 py-3 text-right">Expected records</th>
+            <th scope="col" class="px-4 py-3">Details</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          {% for session in page_obj %}
+            <tr>
+              <td class="whitespace-nowrap px-4 py-3">{{ session.session_date|date:"j M Y" }}</td>
+              <td class="px-4 py-3">
+                {{ session.offering.term.branch.code }}
+                {% if session.section %}· Section {{ session.section.section_code }}{% endif %}
+                {% if session.lab_group %}· {{ session.lab_group.group_code }}{% endif %}
+              </td>
+              <td class="px-4 py-3">
+                <span class="font-medium">{{ session.offering.subject.code }}</span>
+                <span class="block text-slate-600">{{ session.offering.subject.title }}</span>
+              </td>
+              <td class="px-4 py-3">{{ session.get_register_status_display }}</td>
+              <td class="px-4 py-3 text-right tabular-nums">{{ session.expected_records }}</td>
+              <td class="px-4 py-3">
+                <a class="font-semibold text-blue-800 underline" href="/reports/sessions/{{ session.id }}/">
+                  View attendance
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr><td colspan="6" class="px-4 py-10 text-center text-slate-600">No held sessions in this range.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+      <nav aria-label="Session report pages" class="flex items-center justify-between">
+        {% if page_obj.has_previous %}
+          <a class="rounded-md border border-slate-300 px-3 py-2 text-sm underline" href="?start={{ start_date|date:'Y-m-d' }}&amp;end={{ end_date|date:'Y-m-d' }}&amp;page={{ page_obj.previous_page_number }}">Previous page</a>
+        {% else %}<span></span>{% endif %}
+        <span class="text-sm text-slate-600">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a class="rounded-md border border-slate-300 px-3 py-2 text-sm underline" href="?start={{ start_date|date:'Y-m-d' }}&amp;end={{ end_date|date:'Y-m-d' }}&amp;page={{ page_obj.next_page_number }}">Next page</a>
+        {% else %}<span></span>{% endif %}
+      </nav>
+    {% endif %}
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base/base.html" %}
+
+{% block title %}Account Locked — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="min-h-[50vh] flex flex-col justify-center items-center py-12">
+    <div class="max-w-md w-full bg-white p-8 border border-slate-200 rounded-lg shadow-sm text-center">
+        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-rose-100 text-rose-600 mb-4 font-bold text-xl">
+            !
+        </div>
+        <h2 class="text-xl font-bold text-slate-900 mb-2">Access Temporarily Suspended</h2>
+        <p class="text-sm text-slate-600 mb-6">
+            Too many consecutive failed login attempts were detected from your location. For security purposes, further attempts are throttled.
+        </p>
+        <p class="text-xs text-slate-500">
+            Please wait for the lockout cool-off period to expire or contact your Institute Administrator.
+        </p>
+    </div>
+</div>
+{% endblock %}
+

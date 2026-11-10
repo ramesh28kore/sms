@@ -1,0 +1,42 @@
+{% extends "base/base.html" %}
+
+{% block title %}Staged CSV Import — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-xl font-bold text-slate-900">Staged CSV Data Import</h1>
+    <p class="text-sm text-slate-500">Upload student rosters or period attendance registers for non-destructive preview and transactional commit.</p>
+</div>
+
+{% if error %}
+<div class="mb-4 p-4 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+    {{ error }}
+</div>
+{% endif %}
+
+<div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm max-w-2xl">
+    <form method="post" enctype="multipart/form-data" class="space-y-6">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Import Dataset Type</label>
+            <select name="import_type" class="block w-full rounded-md border-slate-300 shadow-sm border p-2 text-sm">
+                <option value="students">Students & Guardians (hall_ticket_number, student_name, guardian_name, guardian_phone)</option>
+                <option value="attendance">Attendance Records (session_id, hall_ticket_number, status)</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700 mb-2">Select CSV File</label>
+            <input type="file" name="csv_file" accept=".csv" required class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border p-2 rounded">
+        </div>
+
+        <div class="pt-4 border-t border-slate-200 flex justify-between items-center">
+            <span class="text-xs text-slate-500">Preview is non-destructive. Live database records are modified only after review.</span>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700">
+                Upload & Preview
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

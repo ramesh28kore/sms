@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ institute_short_name }} — Attendance & Alerts{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="h-full flex flex-col text-slate-900 antialiased" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <!-- Top System Bar -->
+    <header class="bg-slate-900 text-white border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-14">
+            <div class="flex items-center space-x-3">
+                <span class="font-bold text-lg tracking-tight">{{ institute_name }}</span>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                    {{ academic_context }}
+                </span>
+                {% if is_live_mode %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-950 text-emerald-300 border border-emerald-800">
+                    LIVE DISPATCH ACTIVE
+                </span>
+                {% else %}
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-950 text-amber-300 border border-amber-800" title="SIMULATOR mode. No physical SMS sent.">
+                    SIMULATOR MODE
+                </span>
+                {% endif %}
+            </div>
+            <div class="flex items-center space-x-3 text-sm">
+                <span class="text-slate-400 text-xs hidden sm:inline">{{ institute_timezone }}</span>
+                {% if request.user.is_authenticated %}
+                <span class="text-slate-200 font-medium text-xs sm:text-sm bg-slate-800 px-2.5 py-1 rounded-md border border-slate-700">
+                    👤 {{ request.user.full_name|default:request.user.username }}
+                </span>
+                <form method="post" action="{% url 'account_logout' %}" class="inline m-0 p-0">
+                    {% csrf_token %}
+                    <button type="submit" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded bg-rose-600 hover:bg-rose-500 text-white shadow-sm transition cursor-pointer">
+                        Log Out
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'account_login' %}" class="inline-flex items-center px-3 py-1 text-xs font-semibold rounded bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition">Staff Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="bg-white border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-12">
+                <div class="flex space-x-8">
+                    <a href="/dashboard/" class="inline-flex items-center px-1 pt-1 border-b-2 {% if request.path == '/dashboard/' %}border-blue-600 text-blue-600 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300{% endif %} text-sm">
+                        Dashboard
+                    </a>
+                    <a href="/attendance/" class="inline-flex items-center px-1 pt-1 border-b-2 {% if '/attendance/' in request.path %}border-blue-600 text-blue-600 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300{% endif %} text-sm">
+                        Attendance Entry
+                    </a>
+                    <a href="/students/" class="inline-flex items-center px-1 pt-1 border-b-2 {% if '/students/' in request.path %}border-blue-600 text-blue-600 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300{% endif %} text-sm">
+                        Students & Guardians
+                    </a>
+                    <a href="/notifications/" class="inline-flex items-center px-1 pt-1 border-b-2 {% if '/notifications/' in request.path %}border-blue-600 text-blue-600 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300{% endif %} text-sm">
+                        Parent Alerts
+                    </a>
+                    <a href="/reports/" class="inline-flex items-center px-1 pt-1 border-b-2 {% if '/reports/' in request.path %}border-blue-600 text-blue-600 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300{% endif %} text-sm">
+                        Reports
+                    </a>
+                    <a href="/admin-panel/" class="inline-flex items-center px-1 pt-1 border-b-2 {% if '/admin-panel/' in request.path %}border-blue-600 text-blue-600 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300{% endif %} text-sm">
+                        Administration
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {% if messages %}
+        <div class="mb-4 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-md text-sm {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-xs text-slate-500 flex justify-between">
+            <span>{{ institute_name }} — Academic Operations & Notifications</span>
+            <span>SMS Provider: OpenSMS Gateway Interface</span>
+        </div>
+    </footer>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

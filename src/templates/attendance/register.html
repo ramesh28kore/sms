@@ -1,0 +1,83 @@
+{% extends "base/base.html" %}
+
+{% block title %}Register: {{ session.offering }} — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="{% url 'attendance:session_list' %}" class="text-sm text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-2">
+        &larr; Back to Sessions
+    </a>
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-900">{{ session.offering }}</h1>
+            <p class="text-sm text-slate-500">Section: {{ session.section }} | Date: {{ session.session_date }}</p>
+        </div>
+        <div>
+            {% if session.register_status == 'finalized' %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-emerald-100 text-emerald-800">Finalized Register</span>
+            {% else %}
+            <span class="inline-flex px-3 py-1 rounded text-sm font-semibold bg-amber-100 text-amber-800">Draft Register</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if error %}
+<div class="mb-4 p-4 rounded-md bg-rose-50 border border-rose-200 text-rose-800 text-sm">
+    {{ error }}
+</div>
+{% endif %}
+
+<form method="post" class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+    {% csrf_token %}
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600 font-medium">
+            <tr>
+                <th class="px-4 py-3 text-left">Hall Ticket</th>
+                <th class="px-4 py-3 text-left">Student Name</th>
+                <th class="px-4 py-3 text-center">Present</th>
+                <th class="px-4 py-3 text-center">Absent</th>
+                <th class="px-4 py-3 text-center">Late</th>
+                <th class="px-4 py-3 text-center">Excused</th>
+                <th class="px-4 py-3 text-center">Unmarked</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+            {% for r in records %}
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-mono font-medium text-slate-900">{{ r.student.hall_ticket_number }}</td>
+                <td class="px-4 py-3 font-medium text-slate-800">{{ r.student.full_name }}</td>
+                <td class="px-4 py-3 text-center">
+                    <input type="radio" name="status_{{ r.student.id }}" value="present" {% if r.status == 'present' %}checked{% endif %} class="text-emerald-600 focus:ring-emerald-500">
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <input type="radio" name="status_{{ r.student.id }}" value="absent" {% if r.status == 'absent' %}checked{% endif %} class="text-rose-600 focus:ring-rose-500">
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <input type="radio" name="status_{{ r.student.id }}" value="late" {% if r.status == 'late' %}checked{% endif %} class="text-amber-600 focus:ring-amber-500">
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <input type="radio" name="status_{{ r.student.id }}" value="excused" {% if r.status == 'excused' %}checked{% endif %} class="text-blue-600 focus:ring-blue-500">
+                </td>
+                <td class="px-4 py-3 text-center">
+                    <input type="radio" name="status_{{ r.student.id }}" value="unmarked" {% if r.status == 'unmarked' %}checked{% endif %} class="text-slate-400 focus:ring-slate-400">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+        <span class="text-xs text-slate-500">Explicit confirmation required for finalization. Unresolved unmarked rows will reject finalization.</span>
+        <div class="flex space-x-3">
+            <button type="submit" name="action" value="save_draft" class="px-4 py-2 border border-slate-300 rounded-md text-sm font-medium text-slate-700 bg-white hover:bg-slate-50">
+                Save Draft
+            </button>
+            <button type="submit" name="action" value="finalize" onclick="return confirm('Are you sure you want to finalize this attendance register?')" class="px-4 py-2 bg-emerald-600 rounded-md text-sm font-medium text-white hover:bg-emerald-700">
+                Finalize Register
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+

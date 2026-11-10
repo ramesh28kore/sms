@@ -1,0 +1,73 @@
+{% extends "base/base.html" %}
+
+{% block title %}Parent Alerts & Notifications — {{ institute_short_name }}{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+    <div>
+        <h1 class="text-xl font-bold text-slate-900">Parent Alerts & Notification Ledger</h1>
+        <p class="text-sm text-slate-500">Tracked daily absence notices, gateway dispatch states, and attempt histories.</p>
+    </div>
+    {% if is_admin or request.user.is_superuser %}
+    <div class="mt-3 sm:mt-0">
+        <form method="post" action="{% url 'notifications:trigger_daily' %}">
+            {% csrf_token %}
+            <button type="submit" onclick="return confirm('Run daily absence notice generation & dispatch now?')" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition cursor-pointer">
+                ⚡ Trigger Daily Alert Pipeline
+            </button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50 text-slate-600 font-medium">
+            <tr>
+                <th class="px-4 py-3 text-left">Date</th>
+                <th class="px-4 py-3 text-left">Student</th>
+                <th class="px-4 py-3 text-left">Destination</th>
+                <th class="px-4 py-3 text-left">Status</th>
+                <th class="px-4 py-3 text-left">Mode</th>
+                <th class="px-4 py-3 text-right">Details</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-200">
+            {% for n in notifications %}
+            <tr class="hover:bg-slate-50">
+                <td class="px-4 py-3 font-mono text-slate-600">{{ n.intent.attendance_date }}</td>
+                <td class="px-4 py-3">
+                    <div class="font-medium text-slate-900">{{ n.intent.student.full_name }}</div>
+                    <div class="font-mono text-xs text-slate-500">{{ n.intent.student.hall_ticket_number }}</div>
+                </td>
+                <td class="px-4 py-3 font-mono text-slate-600">{{ n.recipient_slot.frozen_destination|slice:":5" }}*****{{ n.recipient_slot.frozen_destination|slice:"-2:" }}</td>
+                <td class="px-4 py-3">
+                    {% if n.status == 'dispatch_accepted' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Dispatch Accepted</span>
+                    {% elif n.status == 'queued' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-blue-100 text-blue-800">Queued</span>
+                    {% elif n.status == 'unknown_outcome' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">Unknown Outcome</span>
+                    {% elif n.status == 'blocked' %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">Blocked</span>
+                    {% else %}
+                    <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold bg-slate-100 text-slate-800 capitalize">{{ n.status }}</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-xs text-slate-500">
+                    {% if n.is_simulation %}<span class="text-amber-700 font-medium">SIM</span>{% else %}<span class="text-emerald-700 font-medium">LIVE</span>{% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'notifications:detail' n.id %}" class="text-blue-600 hover:text-blue-800 font-medium">View Attempt</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-4 py-8 text-center text-slate-500">No notifications generated yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+

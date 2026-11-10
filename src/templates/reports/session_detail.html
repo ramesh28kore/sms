@@ -1,0 +1,50 @@
+{% extends "base/base.html" %}
+
+{% block title %}Attendance record detail — {{ institute_name }}{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+  <header>
+    <p class="text-sm text-slate-600">{{ scope_label }}</p>
+    <h1 class="mt-1 text-2xl font-semibold text-slate-900">Session attendance records</h1>
+    <p class="mt-2 text-sm text-slate-700">
+      {{ session.session_date|date:"l, j M Y" }} · {{ session.offering.subject.code }} — {{ session.offering.subject.title }}
+    </p>
+    <p class="mt-1 text-sm text-slate-600">
+      {{ session.offering.term.branch.code }} · Year {{ session.offering.term.study_year }}, Semester {{ session.offering.term.semester }}
+      {% if session.section %}· Section {{ session.section.section_code }}{% endif %}
+      {% if session.lab_group %}· {{ session.lab_group.group_code }}{% endif %}
+      · {{ session.get_register_status_display }}
+    </p>
+  </header>
+
+  <p class="rounded-md border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+    This view contains student attendance information. It shows only the frozen expected roster for this authorized session. Guardian contact details are not included.
+  </p>
+
+  <div class="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+    <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+      <caption class="sr-only">Frozen expected student roster and attendance marks</caption>
+      <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-600">
+        <tr>
+          <th scope="col" class="px-4 py-3">Hall-ticket number</th>
+          <th scope="col" class="px-4 py-3">Student</th>
+          <th scope="col" class="px-4 py-3">Attendance status</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for record in records %}
+          <tr>
+            <td class="whitespace-nowrap px-4 py-3 font-medium">{{ record.student.hall_ticket_number }}</td>
+            <td class="px-4 py-3">{{ record.student.full_name }}</td>
+            <td class="px-4 py-3">{{ record.get_status_display }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="3" class="px-4 py-10 text-center text-slate-600">No expected roster records are available for this session.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p><a class="font-semibold text-blue-800 underline" href="/reports/">Back to attendance counts</a></p>
+</section>
+{% endblock %}

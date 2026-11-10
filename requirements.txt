@@ -1,0 +1,88 @@
+# Avanthi Attendance & Parent Alerts — Python dependencies
+# Pinned to tested compatible versions. Update with care; re-run tests after any change.
+# Reviewed: 2026-11-08 against Django 5.2 / Python 3.13 compatibility matrix.
+
+# --- Core framework ---
+Django==5.2.3
+# Django 5.2 is LTS; supports Python 3.10–3.13.
+
+# --- Database ---
+psycopg[binary]==3.2.9
+# psycopg3 (binary distribution); Django 5.2 supports psycopg2 and psycopg3.
+
+# --- Background tasks ---
+celery==5.5.3
+redis==5.3.0
+django-celery-beat==2.8.1
+# django-celery-beat uses Django DB for periodic tasks (durable beat schedule).
+
+# --- Authentication & MFA ---
+django-allauth[mfa]==65.9.0
+# Provides TOTP MFA and recovery codes. No public signup configured.
+
+# --- Phone number handling ---
+phonenumbers==9.0.5
+django-phonenumber-field[phonenumbers]==8.1.0
+
+# --- HTTP client (for OpenSMS adapter) ---
+httpx==0.28.1
+# Synchronous client with explicit timeout/retry control. Used ONLY in gateway adapter.
+
+# --- Templates & UI helpers ---
+django-htmx==1.23.0
+django-crispy-forms==2.4
+crispy-tailwind==1.0.3
+
+# --- Security ---
+django-axes==7.0.1
+# Login throttling / brute-force protection.
+django-csp==3.8
+# Content Security Policy headers.
+
+# --- Utilities ---
+python-decouple==3.8
+# Configuration from env/secrets without code change.
+Pillow==11.2.1
+# Required if any image handling (e.g., admin logos). Optional but harmless.
+unicodecsv==0.14.1
+# Unicode-safe CSV import/export.
+openpyxl==3.1.5
+# XLSX export support.
+
+# --- Segment estimation ---
+# No third-party lib needed; implement GSM-7/Unicode counter inline per spec.
+
+# --- Testing ---
+pytest==8.4.0
+pytest-django==4.11.1
+pytest-cov==6.1.0
+pytest-xdist==3.7.0
+factory-boy==3.3.3
+faker==37.4.0
+responses==0.25.7
+# 'responses' mocks httpx for gateway adapter unit tests.
+time-machine==2.16.0
+# Deterministic time freezing for timezone/window tests.
+
+# --- Code quality ---
+ruff==0.11.11
+mypy==1.16.0
+django-stubs==5.2.0
+
+# --- Production server ---
+gunicorn==23.0.0
+whitenoise==6.9.0
+
+# --- Deployment helpers ---
+django-environ==0.12.0
+
+# License notices for redistributed components:
+# Django: BSD-3-Clause
+# psycopg: LGPL-3.0
+# Celery: BSD-3-Clause
+# redis-py: MIT
+# django-allauth: MIT
+# phonenumbers: Apache-2.0 (matches Google libphonenumber)
+# httpx: BSD-3-Clause
+# OpenSMS (external service, not bundled): Apache-2.0
+
